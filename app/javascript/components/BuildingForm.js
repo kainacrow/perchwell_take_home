@@ -95,7 +95,7 @@ const BuildingForm = ({ building, onSuccess }) => {
     };
 
     const handleDeleteCustomField = (fieldName) => {
-        const { [fieldName]: _, ...updatedData } = buildingData; // Use destructuring to remove the custom field
+        const { [fieldName]: _, ...updatedData } = buildingData;
         setBuildingData(updatedData);
     };
 
