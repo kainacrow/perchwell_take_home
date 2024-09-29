@@ -137,3 +137,22 @@ The frontend portion of this project is located here: `/app/javascript/component
 * Create an interface using React components to create a new building and edit an existing building, complete with the necessary API calls.
 * Proper functionality should be the main focus here. Any styling choices are bonus points but it should be readable so add margin and padding for spacing as needed.
 * This should demonstrate a competent use of React hooks to manage state.
+
+# How to Run
+Creating the DB
+* `docker-compose run web rails db:reset` if needed
+* `docker-compose run web rails db:create`
+* `docker-compose run web rails db:migrate`
+* `docker-compose run web rails db:seed`
+
+Running with pry
+* `docker-compose run --service-ports web rails server -b 0.0.0.0`
+
+* `docker-compose down`
+* `docker-compose run web bundle install`
+* `docker-compose build`
+* `docker-compose up`
+
+# Viewing API Data
+* `http://localhost:3000/api/v1/buildings`
+* `http://localhost:3000/api/v1/buildings/1`
