@@ -94,6 +94,11 @@ const BuildingForm = ({ building, onSuccess }) => {
         }
     };
 
+    const handleDeleteCustomField = (fieldName) => {
+        const { [fieldName]: _, ...updatedData } = buildingData; // Use destructuring to remove the custom field
+        setBuildingData(updatedData);
+    };
+
     return (
         <form onSubmit={handleSubmit}>
             {message && <div className={`notification ${messageType}`}>{message}</div>}
@@ -134,6 +139,7 @@ const BuildingForm = ({ building, onSuccess }) => {
                 <button type="button" onClick={handleAddCustomField}>Add</button>
             </div>
 
+            {/* Render Custom Fields with delete functionality */}
             {Object.keys(buildingData).map((key, index) => {
                 if (['address', 'state', 'zip'].includes(key)) return null;
 
@@ -159,6 +165,7 @@ const BuildingForm = ({ building, onSuccess }) => {
                                 required
                             />
                         )}
+                        <button type="button" onClick={() => handleDeleteCustomField(key)}>Delete</button>
                     </div>
                 );
             })}
