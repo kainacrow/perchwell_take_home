@@ -24,8 +24,6 @@ const BuildingForm = ({ building, onSuccess }) => {
     const [customFields, setCustomFields] = useState([]);
     const [selectedClient, setSelectedClient] = useState('');
     const [selectedCustomField, setSelectedCustomField] = useState('');
-    const [message, setMessage] = useState('');
-    const [messageType, setMessageType] = useState('');
 
     // Fetch clients and set selected client if editing
     useEffect(() => {
@@ -66,26 +64,15 @@ const BuildingForm = ({ building, onSuccess }) => {
             body: JSON.stringify({ ...buildingData, client_id: selectedClient }),
         })
             .then(response => response.json())
-            .then(data => {
-                if (data.status === 'success') {
-                    onSuccess();
-                    setMessage(method === 'POST' ? 'Building created successfully!' : 'Building updated successfully!');
-                    setMessageType('success');
-                    if (method === 'POST') {
-                        setBuildingData({ address: '', state: '', zip: '' });
-                        setSelectedClient('');
-                        setSelectedCustomField('');
-                    }
-                } else {
-                    setMessage(data.error || 'An error occurred while saving the building.');
-                    setMessageType('error');
+            .then(() => {
+                onSuccess();
+                if (method === 'POST') {
+                    setBuildingData({ address: '', state: '', zip: '' });
+                    setSelectedClient('');
+                    setSelectedCustomField('');
                 }
             })
-            .catch(error => {
-                console.error('Error:', error);
-                setMessage('An unexpected error occurred.');
-                setMessageType('error');
-            });
+            .catch(error => console.error('Error:', error));
     };
 
     const handleAddCustomField = () => {
@@ -101,8 +88,6 @@ const BuildingForm = ({ building, onSuccess }) => {
 
     return (
         <form onSubmit={handleSubmit}>
-            {message && <div className={`notification ${messageType}`}>{message}</div>}
-
             <div>
                 <label>Client:</label>
                 <select value={selectedClient} onChange={(e) => setSelectedClient(e.target.value)} required>
