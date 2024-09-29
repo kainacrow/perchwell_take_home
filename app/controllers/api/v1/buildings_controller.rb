@@ -4,15 +4,17 @@ class Api::V1::BuildingsController < ApplicationController
   def create
     client = Client.find(params[:client_id])
 
-    building = client.buildings.find_or_create_by(
+    existing_building = client.buildings.find_by(
       address: params[:address].downcase,
       state: params[:state].downcase,
       zip: params[:zip]
     )
 
-    if building.persisted?
+    if existing_building
       return render json: { error: 'Building with the same address already exists' }, status: :unprocessable_entity
     end
+
+    building = client.buildings.new(building_params)
 
     process_custom_fields(building, custom_field_params)
 
@@ -25,11 +27,9 @@ class Api::V1::BuildingsController < ApplicationController
 
   def update
     building = Building.find(params[:id])
-    building.update(address: params[:address])
 
-    process_custom_fields(building, custom_field_params)
-
-    if building.save
+    if building.update(building_params)
+      process_custom_fields(building, custom_field_params)
       render json: { status: 'success', building: building }, status: :ok
     else
       render json: { status: 'error', errors: building.errors.full_messages }, status: :unprocessable_entity
@@ -37,7 +37,7 @@ class Api::V1::BuildingsController < ApplicationController
   end
 
   def index
-    buildings = Building.includes(:client, :custom_field_values).page(params[:page]).per(20)
+    buildings = Building.includes(:client, :custom_field_values).page(params[:page]).per(10)
     formatted_buildings = buildings.map do |building|
       building_data = {
         id: building.id,
@@ -54,7 +54,12 @@ class Api::V1::BuildingsController < ApplicationController
       building_data
     end
 
-    render json: { status: 'success', buildings: formatted_buildings }
+    render json: {
+      status: 'success',
+      buildings: formatted_buildings,
+      current_page: buildings.current_page,
+      total_pages: buildings.total_pages
+    }
   end
 
   def show
@@ -87,19 +92,28 @@ class Api::V1::BuildingsController < ApplicationController
       end
 
       custom_field_value = building.custom_field_values.find_or_initialize_by(custom_field: custom_field)
-      custom_field_value.value = case custom_field.field_type
-                                 when 'number'
-                                   field_value.to_i
-                                 when 'freeform'
-                                   field_value.to_s
-                                 when 'enum'
-                                   if custom_field.enum_values.include?(field_value)
-                                     field_value
-                                   else
-                                     return render json: { error: "Invalid value for #{field_name}" }, status: :unprocessable_entity
-                                   end
-                                 end
-      custom_field_value.save
+      custom_field_value.value = validate_and_format_field_value(custom_field, field_value)
+
+      unless custom_field_value.save
+        return render json: { error: "Error saving custom field #{field_name}" }, status: :unprocessable_entity
+      end
+    end
+  end
+
+  def validate_and_format_field_value(custom_field, field_value)
+    case custom_field.field_type
+    when 'number'
+      field_value.to_i
+    when 'freeform'
+      field_value.to_s
+    when 'enum'
+      if custom_field.enum_values.include?(field_value)
+        field_value
+      else
+        raise StandardError, "Invalid value for #{custom_field.name}"
+      end
+    else
+      raise StandardError, "Unknown field type for #{custom_field.name}"
     end
   end
 
