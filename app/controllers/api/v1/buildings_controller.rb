@@ -103,7 +103,7 @@ class Api::V1::BuildingsController < ApplicationController
   def validate_and_format_field_value(custom_field, field_value)
     case custom_field.field_type
     when 'number'
-      field_value.to_i
+      field_value.to_f
     when 'freeform'
       field_value.to_s
     when 'enum'

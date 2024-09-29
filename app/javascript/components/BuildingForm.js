@@ -110,7 +110,7 @@ const BuildingForm = ({ building, onSuccess }) => {
 
             <div>
                 <label>Zip:</label>
-                <input type="text" name="zip" value={buildingData.zip} onChange={handleInputChange} required />
+                <input type="number" name="zip" value={buildingData.zip} onChange={handleInputChange} required />
             </div>
 
             <div>
@@ -147,6 +147,7 @@ const BuildingForm = ({ building, onSuccess }) => {
                                 name={key}
                                 value={buildingData[key]}
                                 onChange={handleInputChange}
+                                step={selectedField.field_type === 'number' ? '0.1' : undefined}
                                 required
                             />
                         )}
